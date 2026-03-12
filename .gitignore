@@ -1,0 +1,6 @@
+minikube-linux-amd64
+kubectl
+__pycache__
+*.pyc
+.env
+*.log
