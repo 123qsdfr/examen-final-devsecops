@@ -1,0 +1,49 @@
+name: CI Pipeline - TaskFlow
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: 🧪 Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      - name: 🐍 Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: 📚 Install dependencies
+        run: pip install -r requirements.txt
+      - name: 🧪 Run tests
+        run: pytest -v
+
+  build:
+    name: 🐳 Build Docker
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      - name: 🐳 Build image
+        run: docker build -t taskflow:${{ github.sha }} .
+
+  security:
+    name: 🛡️ Security Scan
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+      - name: 🐳 Build image
+        run: docker build -t taskflow:latest .
+      - name: 🛡️ Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: taskflow:latest
+          severity: HIGH,CRITICAL
+          exit-code: '0'
